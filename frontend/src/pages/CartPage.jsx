@@ -72,7 +72,7 @@ export default function CartPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                     <button onClick={() => updateQty(item._id, -1)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--dark)', background: 'transparent', cursor: 'pointer', color: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>−</button>
                     <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>{item.qty}</span>
-                    <button onClick={() => updateQty(item._id, 1)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--dark)', background: 'transparent', cursor: 'pointer', color: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>+</button>
+                    <button onClick={() => !item.isFreeGift && updateQty(item._id, 1)} disabled={item.isFreeGift} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--dark)', background: 'transparent', cursor: item.isFreeGift ? 'not-allowed' : 'pointer', color: item.isFreeGift ? 'var(--gray)' : 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', opacity: item.isFreeGift ? 0.4 : 1 }}>+</button>
                   </div>
 
                   {/* Line Total */}

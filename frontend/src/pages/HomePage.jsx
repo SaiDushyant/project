@@ -161,11 +161,12 @@ export default function HomePage() {
       setShowSpinNotification(true);
       return;
     }
-    const hours = Math.floor(totalSecs / 3600);
+    const days = Math.floor(totalSecs / 86400);
+    const hours = Math.floor((totalSecs % 86400) / 3600);
     const minutes = Math.floor((totalSecs % 3600) / 60);
     const seconds = totalSecs % 60;
     setSpinCountdown(
-      `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     );
   };
 
@@ -192,7 +193,7 @@ export default function HomePage() {
       const lastSpin = new Date(lastSpinStr).getTime();
       const now = Date.now();
       const msDiff = now - lastSpin;
-      const limit = 24 * 60 * 60 * 1000; // 24 hours
+      const limit = 30 * 24 * 60 * 60 * 1000; // 30 days
 
       if (msDiff < limit) {
         setCanSpin(false);
@@ -226,7 +227,7 @@ export default function HomePage() {
         const lastSpin = new Date(lastSpinTimeStr).getTime();
         const now = Date.now();
         const msDiff = now - lastSpin;
-        const limit = 24 * 60 * 60 * 1000;
+        const limit = 30 * 24 * 60 * 60 * 1000;
         if (msDiff < limit) {
           updateCountdown(limit - msDiff);
         } else {

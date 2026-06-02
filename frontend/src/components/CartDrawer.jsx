@@ -43,8 +43,9 @@ export default function CartDrawer() {
                     <span>{item.qty}</span>
                     <button
                       className="qty-btn"
-                      style={{ width: 26, height: 26 }}
-                      onClick={() => updateQty(item._id, 1)}
+                      disabled={item.isFreeGift}
+                      style={{ width: 26, height: 26, opacity: item.isFreeGift ? 0.4 : 1, cursor: item.isFreeGift ? 'not-allowed' : 'pointer' }}
+                      onClick={() => !item.isFreeGift && updateQty(item._id, 1)}
                     >+</button>
                   </div>
                 </div>
