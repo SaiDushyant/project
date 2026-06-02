@@ -81,9 +81,13 @@ router.post("/claim", async (req, res) => {
                 is_active: true
             }]);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase coupon insert error:", JSON.stringify(error, null, 2));
+            throw error;
+        }
         res.status(201).json({ success: true, code: uniqueCode, expiryDate });
     } catch (err) {
+        console.error("Coupon claim route error:", err.message);
         res.status(500).json({ error: err.message });
     }
 });

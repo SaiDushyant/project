@@ -394,7 +394,8 @@ export default function HomePage() {
         setShowClaimSuccessModal(true);
         setShowWheel(false);
       } catch (err) {
-        alert("Failed to claim coupon. Please try again.");
+        const msg = err?.response?.data?.error || err?.message || "Unknown error";
+        alert(`Failed to claim coupon: ${msg}`);
       }
     }
   };
