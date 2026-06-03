@@ -18,6 +18,9 @@ const supabase = require("./config/supabase");
 
 const app = express();
 
+// Trust Vercel's proxy so express-rate-limit reads the real client IP
+app.set("trust proxy", 1);
+
 // BUG-04: Restrict CORS to known origins
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
   .split(",")
