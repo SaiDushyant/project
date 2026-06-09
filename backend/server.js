@@ -22,7 +22,7 @@ const app = express();
 // Trust Vercel's proxy so express-rate-limit reads the real client IP
 app.set("trust proxy", 1);
 
-// BUG-04: Restrict CORS to known origins
+// Restrict CORS to known origins
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
@@ -30,8 +30,11 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, Postman, server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow no-origin requests (Postman, server-to-server, same-origin Vercel)
+      if (!origin) return callback(null, true);
+      // Allow any vercel.app subdomain (handles preview deployments too)
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
