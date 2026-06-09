@@ -31,7 +31,7 @@ export default function Footer() {
             <h4>Support</h4>
             <ul>
               {[
-                { name: "Track Your Order", path: "/login" },
+                { name: "Track Your Order", path: "/track-order" },
                 { name: "Shipping Policy", path: "/shop" },
                 { name: "Return Policy", path: "/shop" },
                 { name: "Privacy Policy", path: "/shop" },

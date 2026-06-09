@@ -14,7 +14,7 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const banners = useBanners();
 
   const [product, setProduct] = useState(null);
@@ -27,24 +27,60 @@ export default function ProductPage() {
   const [wished, setWished] = useState(false);
   const [activeThumb, setActiveThumb] = useState(0);
 
+  const [reviews, setReviews] = useState([]);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     setQty(1);
     setSelectedSize(0);
     setSelectedColor(0);
     setActiveThumb(0);
+    setReviews([]);
+    setReviewRating(0);
+    setReviewComment("");
+    setReviewError("");
+    setReviewSuccess(false);
 
     Promise.all([
       axios.get(`/api/products/${id}`),
       axios.get(`/api/products/${id}/recommendations`),
-    ]).then(([prodRes, recRes]) => {
+      axios.get(`/api/products/${id}/reviews`),
+    ]).then(([prodRes, recRes, revRes]) => {
       setProduct(prodRes.data);
       setRecommendations(recRes.data);
+      setReviews(revRes.data);
       setLoading(false);
     }).catch(() => {
       navigate("/");
     });
   }, [id]);
+
+  async function handleSubmitReview(e) {
+    e.preventDefault();
+    if (!reviewRating) { setReviewError("Please select a star rating"); return; }
+    setReviewSubmitting(true);
+    setReviewError("");
+    try {
+      const token = await getToken();
+      await axios.post(`/api/products/${id}/reviews`, { rating: reviewRating, comment: reviewComment }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const { data } = await axios.get(`/api/products/${id}/reviews`);
+      setReviews(data);
+      setReviewSuccess(true);
+      setReviewRating(0);
+      setReviewComment("");
+    } catch (err) {
+      setReviewError(err.response?.data?.error || "Failed to submit review");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
 
   if (loading) return <Spinner />;
   if (!product) return null;
@@ -305,6 +341,87 @@ export default function ProductPage() {
             </div>
           </div>
         )}
+
+        {/* Reviews Section */}
+        <div style={{ marginTop: "60px", paddingTop: "40px", borderTop: "1px solid var(--border)" }}>
+          <h2 className="section-title" style={{ marginBottom: "32px" }}>
+            Customer <span>Reviews</span>
+            <span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray)", marginLeft: "12px" }}>
+              ({reviews.length})
+            </span>
+          </h2>
+
+          {/* Write a review form */}
+          {user ? (
+            reviewSuccess ? (
+              <div style={{ background: "rgba(16,185,129,0.1)", color: "#059669", padding: "16px 20px", borderRadius: "12px", fontWeight: 700, marginBottom: "32px" }}>
+                Thank you for your review!
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px", marginBottom: "40px" }}>
+                <h3 style={{ fontFamily: "Outfit", fontWeight: 800, fontSize: "1.1rem", marginBottom: "20px", color: "var(--dark)" }}>Write a Review</h3>
+
+                {/* Star picker */}
+                <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      style={{ background: "none", border: "none", fontSize: "1.8rem", cursor: "pointer", color: star <= reviewRating ? "#f59e0b" : "var(--border)", transition: "color 0.15s" }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share your experience with this product (optional)…"
+                  rows={3}
+                  style={{ width: "100%", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.95rem", background: "var(--bg)", color: "var(--text)", resize: "vertical", outline: "none", boxSizing: "border-box" }}
+                />
+
+                {reviewError && <p style={{ color: "#ef4444", fontSize: "0.85rem", marginTop: "8px", fontWeight: 600 }}>{reviewError}</p>}
+
+                <button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  style={{ marginTop: "16px", background: "var(--dark)", color: "white", border: "none", padding: "12px 28px", borderRadius: "8px", fontWeight: 800, fontSize: "0.9rem", cursor: reviewSubmitting ? "not-allowed" : "pointer", opacity: reviewSubmitting ? 0.7 : 1, letterSpacing: "0.5px" }}
+                >
+                  {reviewSubmitting ? "Submitting…" : "Submit Review"}
+                </button>
+              </form>
+            )
+          ) : (
+            <p style={{ color: "var(--gray)", marginBottom: "32px", fontSize: "0.95rem" }}>
+              <Link to="/login" style={{ color: "var(--primary)", fontWeight: 700 }}>Sign in</Link> to leave a review.
+            </p>
+          )}
+
+          {/* Review list */}
+          {reviews.length === 0 ? (
+            <p style={{ color: "var(--gray)", fontStyle: "italic" }}>No reviews yet. Be the first!</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {reviews.map((r) => (
+                <div key={r.id} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: "12px", padding: "20px 24px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                    <div>
+                      <span style={{ fontWeight: 800, color: "var(--dark)", marginRight: "10px" }}>{r.user_name}</span>
+                      <span style={{ color: "#f59e0b", fontSize: "1rem" }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                    </div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--gray)" }}>
+                      {new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                  {r.comment && <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: "1.6", margin: 0 }}>{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

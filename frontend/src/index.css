@@ -54,9 +54,9 @@ body {
   overflow-x: hidden;
 }
 
-.page, section, .reveal {
-  background-color: var(--bg) !important;
-  color: var(--text) !important;
+.page, .reveal {
+  background-color: var(--bg);
+  color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
 }
 

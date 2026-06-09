@@ -14,6 +14,7 @@ const bannerRoutes = require("./routes/bannerRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const newsletterRoutes = require("./routes/newsletterRoutes");
 const mysteryBoxRoutes = require("./routes/mysteryBoxRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const supabase = require("./config/supabase");
 
 const app = express();
@@ -69,6 +70,7 @@ app.use("/api/payment", sensitiveLimiter, paymentRoutes);
 app.use("/api/coupons", sensitiveLimiter, couponRoutes);
 app.use("/api/newsletter", sensitiveLimiter, newsletterRoutes);
 app.use("/api/mystery-boxes", mysteryBoxRoutes);
+app.use("/api/products/:id/reviews", reviewRoutes);
 
 app.get("/", (_, res) => res.json({ message: "Akara API running" }));
 

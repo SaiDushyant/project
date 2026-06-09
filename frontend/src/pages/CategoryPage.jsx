@@ -47,12 +47,13 @@ export default function CategoryPage() {
   }, [categoryName, activeTheme]);
 
   const handleThemeClick = (theme) => {
+    const newParams = new URLSearchParams(searchParams);
     if (theme === "All") {
-      searchParams.delete("theme");
+      newParams.delete("theme");
     } else {
-      searchParams.set("theme", theme);
+      newParams.set("theme", theme);
     }
-    setSearchParams(searchParams);
+    setSearchParams(newParams);
   };
 
   if (loading) return <Spinner />;

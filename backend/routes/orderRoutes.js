@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const supabase = require("../config/supabase");
 const { requireAdmin } = require("../middleware/auth");
+const { sendOrderConfirmation } = require("../utils/email");
 
 // POST /api/orders — public, called from checkout after payment verified
 router.post("/", async (req, res) => {
@@ -56,7 +57,43 @@ router.post("/", async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+
+  // Send confirmation email — fire-and-forget, never block the response
+  sendOrderConfirmation({
+    customerName, customerEmail, address, city, pincode,
+    items, shipping, discountAmount, total,
+  }).catch(() => {});
+
   res.status(201).json({ id: data.id });
+});
+
+// GET /api/orders/track?phone=XXXXXXXXXX — public order tracking by phone
+router.get("/track", async (req, res) => {
+  const { phone } = req.query;
+  if (!phone || !/^\d{10}$/.test(phone.trim())) {
+    return res.status(400).json({ error: "Enter a valid 10-digit phone number" });
+  }
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, created_at, status, total, items, customer_name, payment_status")
+    .eq("customer_phone", phone.trim())
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json(
+    (data || []).map((o) => ({
+      _id: o.id,
+      customerName: o.customer_name,
+      status: o.status || "pending",
+      paymentStatus: o.payment_status,
+      total: o.total,
+      itemCount: (o.items || []).reduce((s, i) => s + (i.qty || 1), 0),
+      createdAt: o.created_at,
+    }))
+  );
 });
 
 // GET /api/orders/sales/summary — admin

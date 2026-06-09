@@ -1,6 +1,11 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import supabase from "../lib/supabase";
 
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -9,28 +14,40 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const onLoginRef = useRef(null);
 
-  const fetchRole = async (userId) => {
+  const fetchRole = async (userId, userEmail) => {
     if (!userId) { setRole(null); return; }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setRole(data?.role || "user");
+
+    // Fast path: email in VITE_ADMIN_EMAILS
+    if (ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes(userEmail?.toLowerCase())) {
+      setRole("admin");
+      return;
+    }
+
+    // DB path: graceful fallback if table doesn't exist
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setRole(data?.role || "user");
+    } catch {
+      setRole("user");
+    }
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const u = data.session?.user ?? null;
       setUser(u);
-      await fetchRole(u?.id ?? null);
+      await fetchRole(u?.id ?? null, u?.email ?? null);
       setLoading(false);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       const newUser = session?.user ?? null;
       setUser(newUser);
-      fetchRole(newUser?.id ?? null);
+      fetchRole(newUser?.id ?? null, newUser?.email ?? null);
       if (event === "SIGNED_IN" && newUser && onLoginRef.current) {
         onLoginRef.current(newUser);
       }

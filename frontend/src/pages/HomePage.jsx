@@ -945,7 +945,7 @@ export default function HomePage() {
       {showSpinNotification && (
         <div style={{
           position: 'fixed',
-          bottom: '30px',
+          bottom: '110px',
           right: '30px',
           background: 'rgba(26, 26, 26, 0.95)',
           backdropFilter: 'blur(10px)',

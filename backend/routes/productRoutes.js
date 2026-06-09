@@ -35,7 +35,10 @@ router.get("/", async (req, res) => {
 
     if (req.query.category) query = query.eq("category", req.query.category);
     if (req.query.theme) query = query.eq("theme", req.query.theme);
-    if (req.query.search) query = query.ilike("name", `%${req.query.search}%`);
+    if (req.query.search) {
+      const term = `%${req.query.search}%`;
+      query = query.or(`name.ilike.${term},description.ilike.${term},category.ilike.${term}`);
+    }
 
     const { data, error } = await query;
     if (error) throw error;

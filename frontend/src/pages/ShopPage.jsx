@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../components/ProductCard";
@@ -27,14 +27,19 @@ export default function ShopPage() {
     setActiveFilter(urlCategory);
   }, [urlCategory]);
 
+  const fetchTimer = useRef(null);
+
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (activeFilter !== "All") params.set("category", activeFilter);
-    if (searchQuery) params.set("search", searchQuery);
-    const themeFilter = searchParams.get("theme");
-    if (themeFilter) params.set("theme", themeFilter);
-    
-    axios.get(`/api/products?${params}`).then((res) => setProducts(res.data));
+    clearTimeout(fetchTimer.current);
+    fetchTimer.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (activeFilter !== "All") params.set("category", activeFilter);
+      if (searchQuery) params.set("search", searchQuery);
+      const themeFilter = searchParams.get("theme");
+      if (themeFilter) params.set("theme", themeFilter);
+      axios.get(`/api/products?${params}`).then((res) => setProducts(res.data));
+    }, 300);
+    return () => clearTimeout(fetchTimer.current);
   }, [activeFilter, searchQuery, searchParams]);
 
   const handleFilterClick = (catName) => {

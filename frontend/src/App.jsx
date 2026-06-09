@@ -18,6 +18,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ShopPage from "./pages/ShopPage";
 import ThemePage from "./pages/ThemePage";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
 import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/theme/:themeName" element={<ThemePage />} />
+          <Route path="/track-order" element={<OrderTrackingPage />} />
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
         </Routes>
       </main>
